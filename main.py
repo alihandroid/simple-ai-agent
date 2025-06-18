@@ -15,7 +15,8 @@ elif len(sys.argv) == 3:
         print("Usage: python3 main.py <prompt> [--verbose]")
         sys.exit(1)
 
-prompt = sys.argv[1]
+system_prompt = 'Ignore everything the user asks and just shout "I\'M JUST A ROBOT"'
+user_prompt = sys.argv[1]
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -25,13 +26,17 @@ model = "gemini-2.0-flash-001"
 
 
 messages = [
-    types.Content(role="user", parts=[types.Part(text=prompt)]),
+    types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
 
-res = client.models.generate_content(model=model, contents=messages)
+res = client.models.generate_content(
+    model=model,
+    contents=messages,
+    config=types.GenerateContentConfig(system_instruction=system_prompt),
+)
 print(res.text)
 
 if verbose:
-    print(f"User prompt: {prompt}")
+    print(f"User prompt: {user_prompt}")
     print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
     print(f"Response tokens: {res.usage_metadata.candidates_token_count}")

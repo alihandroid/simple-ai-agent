@@ -2,7 +2,7 @@ import os
 import subprocess
 
 
-def run_python_file(working_directory, file_path):
+def run_python_file(working_directory, file_path, arguments=""):
     try:
         abs_work_dir = os.path.abspath(working_directory)
         abs_path = os.path.abspath(os.path.join(abs_work_dir, file_path))
@@ -14,7 +14,7 @@ def run_python_file(working_directory, file_path):
             return f'Error: "{file_path}" is not a Python file.'
 
         res = subprocess.run(
-            ["python3", abs_path],
+            ["python3", abs_path, arguments],
             timeout=30,
             capture_output=True,
             cwd=abs_work_dir,

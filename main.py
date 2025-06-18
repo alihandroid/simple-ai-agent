@@ -23,7 +23,7 @@ elif len(sys.argv) == 3:
 user_prompt = sys.argv[1]
 
 system_prompt = """
-You are a helpful AI coding agent.
+You are a helpful AI coding agent. You figure out the files you need to access and modify yourself and do not ask the user.
 
 When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
@@ -93,6 +93,10 @@ schema_run_python_file = types.FunctionDeclaration(
             "file_path": types.Schema(
                 type=types.Type.STRING,
                 description="The path to the pyhton script to run.",
+            ),
+            "arguments": types.Schema(
+                type=types.Type.STRING,
+                description="The arguments to be passed to the python script.",
             ),
         },
         required=["file_path"],

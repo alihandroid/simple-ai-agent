@@ -4,9 +4,17 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
-if len(sys.argv) != 2:
-    print("Usage: python3 main.py [prompt]")
+verbose = False
+if len(sys.argv) < 2 or len(sys.argv) > 3:
+    print("Usage: python3 main.py <prompt> [--verbose]")
     sys.exit(1)
+elif len(sys.argv) == 3:
+    if sys.argv[2] == "--verbose":
+        verbose = True
+    else:
+        print("Usage: python3 main.py <prompt> [--verbose]")
+        sys.exit(1)
+
 prompt = sys.argv[1]
 
 load_dotenv()
@@ -22,5 +30,8 @@ messages = [
 
 res = client.models.generate_content(model=model, contents=messages)
 print(res.text)
-print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
-print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
+
+if verbose:
+    print(f"User prompt: {prompt}")
+    print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
+    print(f"Response tokens: {res.usage_metadata.candidates_token_count}")

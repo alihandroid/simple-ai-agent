@@ -171,7 +171,8 @@ for i in range(0, 20):
         model=model,
         contents=messages,
         config=types.GenerateContentConfig(
-            tools=[available_functions], system_instruction=system_prompt
+            tools=[available_functions],
+            system_instruction=system_prompt,
         ),
     )
 
@@ -179,14 +180,16 @@ for i in range(0, 20):
         messages.append(c.content)
 
     if res.function_calls:
+        results = types.Content(role="function", parts=[])
         for fc in res.function_calls:
             result = call_function(fc, verbose)
-            messages.append(result)
+            results.parts.append(result.parts[0])
             response = result.parts[0].function_response.response
             if not response:
                 raise Exception(f"Function call {fc.name}({fc.args}) has no response")
             if verbose:
                 print(f"-> {response}")
+        messages.append(results)
     else:
         print(res.text)
         break

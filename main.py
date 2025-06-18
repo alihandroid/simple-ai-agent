@@ -119,17 +119,6 @@ messages = [
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
 ]
 
-res = client.models.generate_content(
-    model=model,
-    contents=messages,
-    config=types.GenerateContentConfig(
-        tools=[available_functions], system_instruction=system_prompt
-    ),
-)
-
-if res.text:
-    print(res.text)
-
 
 def call_function(function_call_part, verbose=False):
     if verbose:
@@ -173,16 +162,32 @@ def call_function(function_call_part, verbose=False):
     )
 
 
-if len(res.function_calls) > 0:
-    for fc in res.function_calls:
-        result = call_function(fc, verbose)
-        response = result.parts[0].function_response.response
-        if not response:
-            raise Exception(f"Function call {fc.name}({fc.args}) has no response")
-        if verbose:
-            print(f"-> {response}")
+for i in range(0, 20):
+    res = client.models.generate_content(
+        model=model,
+        contents=messages,
+        config=types.GenerateContentConfig(
+            tools=[available_functions], system_instruction=system_prompt
+        ),
+    )
 
-if verbose:
-    print(f"User prompt: {user_prompt}")
-    print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
-    print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
+    for c in res.candidates:
+        messages.append(c.content)
+
+    if res.function_calls:
+        for fc in res.function_calls:
+            result = call_function(fc, verbose)
+            messages.append(result)
+            response = result.parts[0].function_response.response
+            if not response:
+                raise Exception(f"Function call {fc.name}({fc.args}) has no response")
+            if verbose:
+                print(f"-> {response}")
+    else:
+        print(res.text)
+        break
+
+    if verbose:
+        print(f"User prompt: {user_prompt}")
+        print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {res.usage_metadata.candidates_token_count}")

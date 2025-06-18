@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 if len(sys.argv) != 2:
     print("Usage: python3 main.py [prompt]")
@@ -15,7 +16,11 @@ client = genai.Client(api_key=api_key)
 model = "gemini-2.0-flash-001"
 
 
-res = client.models.generate_content(model=model, contents=prompt)
+messages = [
+    types.Content(role="user", parts=[types.Part(text=prompt)]),
+]
+
+res = client.models.generate_content(model=model, contents=messages)
 print(res.text)
 print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
 print(f"Response tokens: {res.usage_metadata.candidates_token_count}")

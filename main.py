@@ -4,6 +4,11 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+from functions.get_files_info import get_files_info
+from functions.get_file_content import get_file_content
+from functions.write_file import write_file
+from functions.run_python_file import run_python_file
+
 verbose = False
 if len(sys.argv) < 2 or len(sys.argv) > 3:
     print("Usage: python3 main.py <prompt> [--verbose]")
@@ -125,9 +130,57 @@ res = client.models.generate_content(
 if res.text:
     print(res.text)
 
+
+def call_function(function_call_part, verbose=False):
+    if verbose:
+        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    else:
+        print(f" - Calling function: {function_call_part.name}")
+    args = function_call_part.args
+    args["working_directory"] = "./calculator"
+
+    function_name = function_call_part.name
+    function_result = None
+
+    match function_name:
+        case "get_files_info":
+            function_result = get_files_info(**args)
+        case "get_file_content":
+            function_result = get_file_content(**args)
+        case "write_file":
+            function_result = write_file(**args)
+        case "run_python_file":
+            function_result = run_python_file(**args)
+        case _:
+            return types.Content(
+                role="tool",
+                parts=[
+                    types.Part.from_function_response(
+                        name=function_name,
+                        response={"error": f"Unknown function: {function_name}"},
+                    )
+                ],
+            )
+
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_name,
+                response={"result": function_result},
+            )
+        ],
+    )
+
+
 if len(res.function_calls) > 0:
     for fc in res.function_calls:
-        print(f"Calling function: {fc.name}({fc.args})")
+        result = call_function(fc, verbose)
+        response = result.parts[0].function_response.response
+        if not response:
+            raise Exception(f"Function call {fc.name}({fc.args}) has no response")
+        if verbose:
+            print(f"-> {response}")
 
 if verbose:
     print(f"User prompt: {user_prompt}")

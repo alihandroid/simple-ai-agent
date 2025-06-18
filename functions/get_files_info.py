@@ -5,7 +5,6 @@ def get_files_info(working_directory, directory=None):
     try:
         abs_work_dir = os.path.abspath(working_directory)
         abs_dir = os.path.abspath(os.path.join(abs_work_dir, directory))
-        print(abs_work_dir, abs_dir)
         if not abs_dir.startswith(abs_work_dir):
             return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
         if not os.path.isdir(abs_dir):
